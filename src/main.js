@@ -12,23 +12,28 @@ let pokemons = document.querySelector(".pokemons")
 
 let buttonnewBattle = document.querySelector(".newBatlle")
 
-
 buttonnewBattle.addEventListener("click", async () => {
   divPokemon1.innerHTML = "";
   divPokemon2.innerHTML = "";
   Winner.textContent = "";
   pokemons.textContent = "";
 
-
   let numberRandom1, numberRandom2;
   let datospokemon1, datospokemon2;
 
   try {
-    let img = document.createElement("img");
-
     numberRandom1 = Math.floor(Math.random() * 125) + 1;
-    const response = await fetch('https://pokeapi.co/api/v2/pokemon/' + numberRandom1);
-    datospokemon1 = await response.json();
+    numberRandom2 = Math.floor(Math.random() * 125) + 1;
+
+    const [data1, data2] = await Promise.all([
+      fetch(`https://pokeapi.co/api/v2/pokemon/${numberRandom1}`).then(r => r.json()),
+      fetch(`https://pokeapi.co/api/v2/pokemon/${numberRandom2}`).then(r => r.json())
+    ]);
+
+    datospokemon1 = data1;
+    datospokemon2 = data2;
+
+    let img = document.createElement("img");
 
     let nameEl = document.createElement("p");
     nameEl.textContent = datospokemon1.name;
@@ -46,35 +51,29 @@ buttonnewBattle.addEventListener("click", async () => {
 
     divPokemon1.append(nameEl, img, hpEl);
 
+    let img2 = document.createElement("img");
+
+    let nameEl2 = document.createElement("p");
+    nameEl2.textContent = datospokemon2.name;
+
+    let hpEl2 = document.createElement("p");
+    hpEl2.textContent = "HP: " + datospokemon2.stats[1].base_stat;
+
+    img2.src = datospokemon2.sprites.front_default;
+    img2.addEventListener("mouseover", () => {
+      img2.src = datospokemon2.sprites.back_default;
+    });
+    img2.addEventListener("mouseout", () => {
+      img2.src = datospokemon2.sprites.front_default;
+    });
+
+    divPokemon2.append(nameEl2, img2, hpEl2);
+
   } catch (error) {
+    console.error(error);
     divPokemon1.innerHTML = "<p>Error fetching data</p>";
-  }
-
-  try {
-    let img = document.createElement("img");
-
-    numberRandom2 = Math.floor(Math.random() * 125) + 1;
-    const response = await fetch('https://pokeapi.co/api/v2/pokemon/' + numberRandom2);
-    datospokemon2 = await response.json();
-
-    let nameEl = document.createElement("p");
-    nameEl.textContent = datospokemon2.name;
-
-    let hpEl = document.createElement("p");
-    hpEl.textContent = "HP: " + datospokemon2.stats[1].base_stat;
-
-    img.src = datospokemon2.sprites.front_default;
-    img.addEventListener("mouseover", () => {
-      img.src = datospokemon2.sprites.back_default;
-    });
-    img.addEventListener("mouseout", () => {
-      img.src = datospokemon2.sprites.front_default;
-    });
-
-    divPokemon2.append(nameEl, img, hpEl);
-
-  } catch (error) {
     divPokemon2.innerHTML = "<p>Error fetching data</p>";
+    return;
   }
 
   titleofBattle.innerHTML = datospokemon1.name + " VS " + datospokemon2.name
@@ -96,10 +95,10 @@ buttonnewBattle.addEventListener("click", async () => {
   butonBattle.addEventListener("click", async () => {
     butonBattle.disabled = true;
 
-    const fightingTexts = ["Fighting.", "Fighting..", "Fighting..."];
-    for (let text of fightingTexts) {
-      butonBattle.textContent = text;
-      await delay(1000);
+    butonBattle.textContent = "Fighting";
+    for (let i = 0; i < 3; i++) {
+      await delay(500);
+      butonBattle.textContent += ".";
     }
 
     butonBattle.disabled = false;
